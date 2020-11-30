@@ -45,7 +45,7 @@ const LineChart = () => {
     ]);
 
     useEffect(() => {
-        const width = 500;
+        const width = 400;
         const height = 300;
 
         const margin = {
