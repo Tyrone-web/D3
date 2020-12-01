@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import * as d3 from 'd3';
+import { index, line } from 'd3';
 
 const LineChart = () => {
     const [dataset, SetDataset] = useState([3, 7, 2, 9, 5, 12]);
@@ -129,19 +130,63 @@ const LineChart = () => {
             .attr('x', `${mainGroupWidth + 15}`)
             .attr('y', (d, i) => i * 15);
 
-        mainGroup.selectAll('.legendRect')
-            .on('mouseover', (event, d) => {
-                console.log('test');
+        // 给legends图例添加交互
+        d3.selectAll('.legendRect')
+            .on('mouseover', function (event, d) { //注意这里如果要使用箭头函数这里不能使用箭头函数
+                const currentColor = d3.select(this).attr('fill');
                 const currentRect = d.country;
-                // d3.selectAll('.linePath')
-                //     .attr('stroke', (d, i) => {
-                //         if (d.country !== currentRect) {
-
-                //             // console.log(colors[i]);
-                //             // return 'gray';
-                //         }
-                //     });
+                // 保留当前选中颜色对应线条的颜色，其他的全部变为灰色且透明度设置为0.2
+                d3.selectAll('.linePath')
+                    .attr('stroke', d => d.country !== currentRect ? 'gray' : currentColor)
+                    .attr('opacity', (d) => d.country !== currentRect ? '0.2' : 1);
+            })
+            .on('mouseout', function (event, d, i) {
+                // 重置所有线条的颜色为初始值
+                const lines = d3.selectAll('.linePath')._groups[0];
+                lines.forEach((line, index) => {
+                    line.setAttribute('stroke', colors[index]);
+                    line.setAttribute('opacity', 1);
+                });
             });
+
+        // 给所有的线条添加交互和legends交互的内容相同
+        d3.selectAll('.linePath')
+            .on('mouseover', function (event, d) {
+                const currentColor = d3.select(this).attr('stroke');
+                const currentRect = d.country;
+                d3.selectAll('.linePath')
+                    .attr('stroke', d => d.country !== currentRect ? 'gray' : currentColor)
+                    .attr('opacity', (d) => d.country !== currentRect ? '0.2' : 1);
+            })
+            .on('mouseout', function (event, d, i) {
+                const lines = d3.selectAll('.linePath')._groups[0];
+                lines.forEach((line, index) => {
+                    line.setAttribute('stroke', colors[index]);
+                    line.setAttribute('opacity', 1);
+                });
+            });
+
+        // 给每条线添加添加点
+        let circles;
+        const dataCircles = [];
+        dataset1.forEach((item, index) => {
+            dataCircles.push(item.gdp);
+        })
+
+        dataCircles.forEach((gdp, index) => {
+            console.log(gdp[index]);
+            circles = mainGroup.selectAll('circle')
+                .data(gdp[index])
+                .enter()
+                .append('circle')
+                .attr('x', d => xSclae(d[0]))
+                .attr('y', d => yScale(d[1]))
+                .attr('r', 5)
+                .attr('fill', colors[index]);
+        })
+        console.log(dataCircles);
+
+
 
         const textGroup = mainGroup.append('g')
             .attr('class', 'textGroup');
@@ -154,12 +199,12 @@ const LineChart = () => {
             .attr('y', (d, i) => i * 15 + 5)
             .attr('text-anchor', 'start')
             .text(d => d.country)
-        
-        const circleGropu = mainGroup.selectAll('circle')
-            .data(dataset1[0].gdp)
-            .enter()
-            .append('circle')
-            .attr('fill', 'steelblue');
+
+        // const circleGropu = mainGroup.selectAll('circle')
+        //     .data(dataset1[0].gdp)
+        //     .enter()
+        //     .append('circle')
+        //     .attr('fill', 'steelblue');
 
 
     }, [dataset1]);
