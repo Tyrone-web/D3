@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import * as d3 from 'd3';
-import { index, line } from 'd3';
+
+import './lineChart.css';
 
 const LineChart = () => {
     const [dataset, SetDataset] = useState([3, 7, 2, 9, 5, 12]);
@@ -79,13 +80,13 @@ const LineChart = () => {
             .domain([2000, 2013])
             .range([0, mainGroupWidth]);
         const yScale = d3.scaleLinear()
-            .domain([0, gdpMax]) // 这里需要变动？？
+            .domain([0, gdpMax]) // 这里gdpMax * 1.1 ?
             .range([mainGroupHeight, 0]);
 
         const line_generator = d3.line()
             .x(d => xSclae(d[0]))
             .y(d => yScale(d[1]))
-            .curve(d3.curveBasis);
+        // .curve(d3.curveMonotoneY);
 
         const colors = d3.schemeCategory10;
 
@@ -135,58 +136,96 @@ const LineChart = () => {
             .on('mouseover', function (event, d) { //注意这里如果要使用箭头函数这里不能使用箭头函数
                 const currentColor = d3.select(this).attr('fill');
                 const currentRect = d.country;
-                // 保留当前选中颜色对应线条的颜色，其他的全部变为灰色且透明度设置为0.2
+                // 保留当前选中图例颜色对应颜色线条的样式，其它线条透明度设置为0.2
                 d3.selectAll('.linePath')
-                    .attr('stroke', d => d.country !== currentRect ? 'gray' : currentColor)
                     .attr('opacity', (d) => d.country !== currentRect ? '0.2' : 1);
+
+                d3.selectAll('circle')
+                    .attr('opacity', (d) => {
+                        console.log(d);
+                        // return d.country !== currentRect ? '0.2' : 1
+                        return 1;
+                    });
+                // 保留当前选中图例颜色的circle的样式，其它circle的透明度设置为0.2
+                // const circles = d3.selectAll('circle');
+                // console.log(circles);
+                // const currentCircles = document.getElementsByTagName('circle');
+                // const circleArray = Array.from(currentCircles)
+                // circles._groups[0].forEach((circle, index) => {
+                //     circle.attr('opacity', circleData => {
+                //         console.log(circleData);
+                //         return 1;
+                //     })
+                // });
+                d3.selectAll('circle')
+                    .attr('opacity', '0.2');
             })
             .on('mouseout', function (event, d, i) {
                 // 重置所有线条的颜色为初始值
                 const lines = d3.selectAll('.linePath')._groups[0];
                 lines.forEach((line, index) => {
-                    line.setAttribute('stroke', colors[index]);
                     line.setAttribute('opacity', 1);
                 });
             });
 
-        // 给所有的线条添加交互和legends交互的内容相同
+        // 给所有的线条添加和legends交互的内容相同
         d3.selectAll('.linePath')
             .on('mouseover', function (event, d) {
                 const currentColor = d3.select(this).attr('stroke');
                 const currentRect = d.country;
                 d3.selectAll('.linePath')
-                    .attr('stroke', d => d.country !== currentRect ? 'gray' : currentColor)
-                    .attr('opacity', (d) => d.country !== currentRect ? '0.2' : 1);
+                    .attr('opacity', (d) => d.country !== currentRect ? '0.1' : 1);
             })
             .on('mouseout', function (event, d, i) {
                 const lines = d3.selectAll('.linePath')._groups[0];
                 lines.forEach((line, index) => {
-                    line.setAttribute('stroke', colors[index]);
                     line.setAttribute('opacity', 1);
                 });
             });
 
         // 给每条线添加添加点
-        let circles;
-        const dataCircles = [];
+        let circleData = [];
         dataset1.forEach((item, index) => {
-            dataCircles.push(item.gdp);
-        })
+            circleData.push(item.gdp);
+        });
 
-        dataCircles.forEach((gdp, index) => {
-            console.log(gdp[index]);
-            circles = mainGroup.selectAll('circle')
-                .data(gdp[index])
+        circleData.forEach((data, index) => {
+            mainGroup.selectAll(`circle${index}`) // 这里需要选择一个空的集合，否则后面的选择集会覆盖前面的集合导致指挥显示最后一次的选择集
+                .data(data)
                 .enter()
                 .append('circle')
-                .attr('x', d => xSclae(d[0]))
-                .attr('y', d => yScale(d[1]))
-                .attr('r', 5)
+                .attr('class', `circle${index}`) // 给圆点添加类名
+                .attr('cx', d => xSclae(d[0]))
+                .attr('cy', d => yScale(d[1]))
+                .attr('r', 3)
                 .attr('fill', colors[index]);
-        })
-        console.log(dataCircles);
+        });
+
+        // 添加tooltip 在画布之外添加一个div元素作为提示的容器
+        // attr方法只整队元素本身有的属性，当要设置样式的时候需要用到stye方法
+        const toolTip = d3.select('.container')
+            .append('div')
+            .attr('class', 'tooltipDiv')
 
 
+        mainGroup.selectAll('circle')
+            .on('mouseover', (event, d) => {
+                console.log(event);
+                toolTip
+                    .html(
+                        `
+                            <span>时间：${d[0]}</span><br />
+                            <span>异常点：${d[1]}</span><br />
+                            <span>状态：正常</span>
+                        `
+                    )
+                    .style('opacity', 1)
+                    .style('left', `${event.pageX}px`)
+                    .style('top', `${event.pageY + 20}px`) // 这里+20是为了让tooltip在鼠标箭头的下方
+            })
+            .on('mouseout', () => {
+                toolTip.style('opacity', 0); // 隐藏tooltip
+            })
 
         const textGroup = mainGroup.append('g')
             .attr('class', 'textGroup');
@@ -198,13 +237,7 @@ const LineChart = () => {
             .attr('x', mainGroupWidth + 45)
             .attr('y', (d, i) => i * 15 + 5)
             .attr('text-anchor', 'start')
-            .text(d => d.country)
-
-        // const circleGropu = mainGroup.selectAll('circle')
-        //     .data(dataset1[0].gdp)
-        //     .enter()
-        //     .append('circle')
-        //     .attr('fill', 'steelblue');
+            .text(d => d.country);
 
 
     }, [dataset1]);

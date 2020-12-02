@@ -1,0 +1,8 @@
+.tooltipDiv {
+  position: absolute;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  opacity: 0;
+  background-color: rgba(245, 245, 245, 0.8);
+
+}
