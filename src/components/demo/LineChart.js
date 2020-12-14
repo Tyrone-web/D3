@@ -43,16 +43,54 @@ const LineChart = () => {
                 [2012, 59370],
                 [2013, 48980]
             ]
+        },
+        {
+            country: '主机主机主机主机主机主机主机主机主机主机',
+            gdp: [
+                [2000, 87340],
+                [2001, 91590],
+                [2002, 109800],
+                [2003, 11020],
+                [2004, 12550],
+                [2005, 13710],
+                [2006, 14560],
+                [2007, 15560],
+                [2008, 16490],
+                [2009, 17350],
+                [2010, 18950],
+                [2011, 19050],
+                [2012, 20370],
+                [2013, 21980]
+            ]
+        },
+        {
+            country: 'korea',
+            gdp: [
+                [2000, 27340],
+                [2001, 12890],
+                [2002, 25800],
+                [2003, 51020],
+                [2004, 62550],
+                [2005, 73710],
+                [2006, 84560],
+                [2007, 95560],
+                [2008, 106490],
+                [2009, 27350],
+                [2010, 12550],
+                [2011, 39350],
+                [2012, 30370],
+                [2013, 31880]
+            ]
         }
     ]);
 
     useEffect(() => {
-        const width = 400;
+        const width = 600;
         const height = 300;
 
         const margin = {
             top: 30,
-            right: 100,
+            right: 200,
             bottom: 30,
             left: 50
         }
@@ -117,70 +155,31 @@ const LineChart = () => {
             .attr('class', 'yAxis')
             .call(yAxis);
 
-        const legendGroup = mainGroup.append('g')
-            .attr('class', 'legendGroup')
-
-        const rects = legendGroup.selectAll('rect')
-            .data(dataset1)
-            .enter()
-            .append('rect')
-            .attr('class', 'legendRect')
-            .attr('fill', (d, i) => colors[i])
-            .attr('width', 25)
-            .attr('height', 3)
-            .attr('x', `${mainGroupWidth + 15}`)
-            .attr('y', (d, i) => i * 15);
-
-        // 给legends图例添加交互
-        d3.selectAll('.legendRect')
-            .on('mouseover', function (event, d) { //注意这里如果要使用箭头函数这里不能使用箭头函数
-                const currentColor = d3.select(this).attr('fill');
-                const currentRect = d.country;
-                // 保留当前选中图例颜色对应颜色线条的样式，其它线条透明度设置为0.2
-                d3.selectAll('.linePath')
-                    .attr('opacity', (d) => d.country !== currentRect ? '0.2' : 1);
-
-                d3.selectAll('circle')
-                    .attr('opacity', (d) => {
-                        console.log(d);
-                        // return d.country !== currentRect ? '0.2' : 1
-                        return 1;
-                    });
-                // 保留当前选中图例颜色的circle的样式，其它circle的透明度设置为0.2
-                // const circles = d3.selectAll('circle');
-                // console.log(circles);
-                // const currentCircles = document.getElementsByTagName('circle');
-                // const circleArray = Array.from(currentCircles)
-                // circles._groups[0].forEach((circle, index) => {
-                //     circle.attr('opacity', circleData => {
-                //         console.log(circleData);
-                //         return 1;
-                //     })
-                // });
-                d3.selectAll('circle')
-                    .attr('opacity', '0.2');
-            })
-            .on('mouseout', function (event, d, i) {
-                // 重置所有线条的颜色为初始值
-                const lines = d3.selectAll('.linePath')._groups[0];
-                lines.forEach((line, index) => {
-                    line.setAttribute('opacity', 1);
-                });
-            });
-
-        // 给所有的线条添加和legends交互的内容相同
+        // 给所有的线条添加和legends交互相同的交互
         d3.selectAll('.linePath')
             .on('mouseover', function (event, d) {
                 const currentColor = d3.select(this).attr('stroke');
                 const currentRect = d.country;
                 d3.selectAll('.linePath')
                     .attr('opacity', (d) => d.country !== currentRect ? '0.1' : 1);
+
+                const gdp = d.gdp;
+                d3.selectAll('circle')
+                    .attr('opacity', circleData => {
+                        let opacity = 0.1;
+                        gdp.forEach(item => item === circleData ? opacity = 1 : 0.1);
+                        return opacity;
+                    });
+
             })
             .on('mouseout', function (event, d, i) {
                 const lines = d3.selectAll('.linePath')._groups[0];
                 lines.forEach((line, index) => {
                     line.setAttribute('opacity', 1);
                 });
+
+                const circles = d3.selectAll('circle')._groups[0];
+                circles.forEach(circle => circle.setAttribute('opacity', 1));
             });
 
         // 给每条线添加添加点
@@ -201,16 +200,79 @@ const LineChart = () => {
                 .attr('fill', colors[index]);
         });
 
-        // 添加tooltip 在画布之外添加一个div元素作为提示的容器
-        // attr方法只整队元素本身有的属性，当要设置样式的时候需要用到stye方法
+        // 添加tooltip：在画布之外添加一个div元素作为提示的容器
+        // attr方法只针对元素本身有的属性，当要设置样式的时候需要用到stye方法
         const toolTip = d3.select('.container')
             .append('div')
             .attr('class', 'tooltipDiv')
 
+        // 添加图例
+        const legendGroup = d3.select('.container')
+            .append('div')
+            .attr('class', 'legendDiv')
+            .style('transform', `translate(30, ${mainGroupWidth})`)
 
+        const legendUl = legendGroup.append('ul')
+            .attr('class', 'legendUl');
+
+        const legendLi = legendUl.selectAll('li')
+            .data(dataset1)
+            .enter()
+            .append('li')
+            .attr('class', 'legendLi')
+            // .style('background-color', (d, i) => colors[i]);
+
+        const legendRect = legendLi.insert('i')
+            .attr('class', 'legend-rect')
+            .style('background-color', (d, i) => colors[i]);
+
+        const legentText = legendLi.append('span')
+            .attr('class', 'legend-text')
+            .attr('title', d => {
+                return d.country.length > 6 ? d.country : '';
+            })
+            .text(d => d.country);
+
+
+
+
+        // 给legends图例添加交互
+        d3.selectAll('.legendLi')
+            .on('mouseover', function (event, d, i) { //注意这里如果要使用回调函数中的this这里不能使用箭头函数
+                const currentColor = d3.select(this).style('background-color');
+                const currentRect = d.country;
+                // 保留当前选中图例颜色对应颜色线条的样式，其它线条透明度设置为0.1
+                d3.selectAll('.linePath')
+                    .attr('opacity', (d, i) => {
+                        // console.log(d, i);
+                        return d.country !== currentRect ? '0.1' : 1;
+                    });
+
+                // 保留当前选中图例颜色对应颜色圆点(circle)的样式，其它圆点透明度设置为0.1
+                const gdp = d.gdp;
+                d3.selectAll('circle')
+                    .attr('opacity', circleData => {
+                        let opacity = 0.1;
+                        gdp.forEach(item => item === circleData ? opacity = 1 : 0.1);
+                        return opacity;
+                    })
+            })
+            .on('mouseout', function (event, d, i) {
+                // 重置所有线条的颜色为初始值
+                const lines = d3.selectAll('.linePath')._groups[0];
+                lines.forEach((line, index) => {
+                    line.setAttribute('opacity', 1);
+                });
+
+                //  重置所有圆点（circle)的颜色为初始值
+                const circles = d3.selectAll('circle')._groups[0];
+                circles.forEach((circle, index) => circle.setAttribute('opacity', 1));
+            });
+
+
+        // 给圆点添加交互
         mainGroup.selectAll('circle')
             .on('mouseover', (event, d) => {
-                console.log(event);
                 toolTip
                     .html(
                         `
@@ -227,75 +289,7 @@ const LineChart = () => {
                 toolTip.style('opacity', 0); // 隐藏tooltip
             })
 
-        const textGroup = mainGroup.append('g')
-            .attr('class', 'textGroup');
-
-        const text = textGroup.selectAll('text')
-            .data(dataset1)
-            .enter()
-            .append('text')
-            .attr('x', mainGroupWidth + 45)
-            .attr('y', (d, i) => i * 15 + 5)
-            .attr('text-anchor', 'start')
-            .text(d => d.country);
-
-
     }, [dataset1]);
-
-    // useEffect(() => {
-    //     const width = 500;
-    //     const height = 300;
-
-    //     const margin = {
-    //         top: 30,
-    //         right: 20,
-    //         bottom: 20,
-    //         left: 40
-    //     }
-
-    //     const mainGroupWidth = width - margin.left - margin.right;
-    //     const mainGroupHeight = height - margin.top - margin.bottom;
-
-    //     const svg = d3.select('.container')
-    //         .append('svg')
-    //         .attr('width', width)
-    //         .attr('height', height);
-
-    //     const mainGroup = svg.append('g')
-    //         .attr('class', 'mainGropu')
-    //         .attr('transform', `translate(${margin.left}, ${margin.top})`);
-
-    //     const xScale = d3.scaleLinear()
-    //         .domain([0, dataset.length - 1])
-    //         .range([0, mainGroupWidth]);
-
-    //     const yScale = d3.scaleLinear()
-    //         .domain([0, d3.max(dataset)])
-    //         .range([mainGroupHeight, 0]);
-
-    //     const xAxis = d3.axisBottom(xScale);
-    //     const yAxis = d3.axisLeft(yScale);
-
-    //     const gXAxis = mainGroup.append('g')
-    //         .attr('class', 'xAxis')
-    //         .attr('transform', `translate(0, ${mainGroupHeight})`)
-    //         .call(xAxis);
-
-    //     const gYAxis = mainGroup.append('g')
-    //         .attr('class', 'xAxis')
-    //         .call(yAxis);
-
-    //     const line_generator = d3.line()
-    //         .x((d, i) => xScale(i))
-    //         .y(d => yScale(d));
-
-
-    //     const path = mainGroup.append('path')
-    //         .attr('d', line_generator(dataset))
-    //         .attr('fill', 'none')
-    //         .attr('stroke', 'steelblue')
-    //         .attr('stroke-width', 2);
-    // }, [dataset]);
 
     return (
         <div className="container"></div>

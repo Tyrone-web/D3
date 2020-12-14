@@ -6,6 +6,7 @@ import ScatterChart from './components/demo/ScatterChart';
 import LineChart from './components/demo/LineChart';
 import BarChart from './components/demo/BarChart';
 import reportWebVitals from './reportWebVitals';
+import Scroll from './components/demo/scroll';
 
 ReactDOM.render(
   <React.StrictMode>
@@ -14,6 +15,7 @@ ReactDOM.render(
       {/*<Demo /> */}
       {/* <ScatterChart /> */}
       <LineChart />
+      {/* <Scroll /> */}
     </div>
   </React.StrictMode>,
   document.getElementById('root')

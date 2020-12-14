@@ -1,8 +1,55 @@
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  list-style: none;
+}
+
 .tooltipDiv {
   position: absolute;
   border-radius: 5px;
   border: 1px solid #ccc;
   opacity: 0;
   background-color: rgba(245, 245, 245, 0.8);
+}
 
+.container {
+  position: relative;
+}
+
+.container .legendDiv {
+  position: absolute;
+  top: 30px;
+  left: 450px;
+  height: 90px;
+  overflow: scroll;
+  /* border: 1px solid #ccc; */
+}
+
+.container .legendDiv .legendUl .legendLi {
+  height: 25px;
+  line-height: 25px;
+  width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.container .legendDiv .legendUl .legendLi .legend-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-left: 5px;
+}
+
+.container .legendDiv .legendUl .legendLi .legend-rect {
+  display: inline-block;
+  width: 32px;
+  height: 5px;
+}
+
+::-webkit-scrollbar {
+  width: 0;
 }
